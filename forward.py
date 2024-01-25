@@ -146,10 +146,16 @@ class ExtractData:
         """
         Filter the data based on time ranges.
         """
-        self.filtered_data = self.gait_data[
-            (self.gait_data['Time (s)'] >= self.time_ranges[0][0]) & (self.gait_data['Time (s)'] <= self.time_ranges[0][1]) |
-            (self.gait_data['Time (s)'] >= self.time_ranges[1][0]) & (self.gait_data['Time (s)'] <= self.time_ranges[1][1])
-        ]
+        # Initialize an empty DataFrame for filtered data
+        self.filtered_data = pd.DataFrame()
+
+        # Loop through each time range in self.time_ranges
+        for start, end in self.time_ranges:
+            # Apply the filter for the current time range
+            current_filtered = self.gait_data[(self.gait_data['Time (s)'] >= start) & (self.gait_data['Time (s)'] <= end)]
+
+            # Combine the filtered data from the current time range with the previous ones
+            self.filtered_data = pd.concat([self.filtered_data, current_filtered])
 
     def check_missing_data(self):
         """
