@@ -17,6 +17,38 @@ class ExtractData:
         self.filtered_data = None
         self.missing_data_info = None
 
+    def concatenate_dataframes(self):
+        """
+        Concatenate two dataframes vertically after verifying the column names match.
+        Initially, remove the postfix '.1' from each of the column names in self.right_side_df.
+        """
+        print(f'self.left_side_df columns: {self.left_side_df.columns}')
+
+        # Removing the postfix '.1' from each column name in self.right_side_df
+        self.right_side_df.columns = [col.replace('.1', '') for col in self.right_side_df.columns]
+        print(f'\nself.right_side_df columns: {self.right_side_df.columns}')
+
+        self.left_side_df.columns = self.right_side_df.columns
+
+        # Check if the columns in both dataframes match
+        if list(self.left_side_df.columns) == list(self.right_side_df.columns):
+            # Columns match, proceed with concatenation
+            self.concatenated_df = pd.concat([self.left_side_df, self.right_side_df], axis=0)
+        else:
+            # Handle the case where columns do not match
+            print("Column names do not match. Cannot concatenate dataframes.")
+            print(f'Right side dataframe columns: {self.right_side_df.columns}')
+            print(f'Left side dataframe columns: {self.left_side_df.columns}')
+            # Optionally, you can implement logic here to reconcile the column names
+            # For example, you might rename columns or drop non-matching ones
+            # Then, perform the concatenation after handling the mismatch
+            # self.concatenated_df = pd.concat([adjusted_left_side_df, adjusted_right_side_df], axis=0)
+
+        print("\nConcatenated Data Head:")
+        if 'self.concatenated_df' in locals():
+            print(self.concatenated_df.head())  # Display the first few rows of concatenated_df
+        else:
+            print("Concatenated dataframe not created due to column mismatch.")
 
     def load_data(self):
         """
@@ -43,7 +75,7 @@ class ExtractData:
 
         # Collect the first four columns in self.left_side_df
         self.left_side_df = self.gait_data.iloc[:, :4]
-        print("\nLeft Side Data Head:")
+        print("\n\nLeft Side Data Head:")
         print(self.left_side_df.head())  # Display the first few rows of left_side_df
 
         # Drop the first five columns from the gait_data (total drop is now nine columns)
@@ -51,18 +83,16 @@ class ExtractData:
 
         # Collect the first four columns in self.right_side_df
         self.right_side_df = self.gait_data.iloc[:, :4]
-        print("\nRight Side Data Head:")
+        print("\n\nRight Side Data Head:")
         print(self.right_side_df.head())  # Display the first few rows of right_side_df
 
         # Creating the concatenated dataframe
-        self.concatenated_df = pd.concat([self.left_side_df, self.right_side_df], axis=1)
-        print("\nConcatenated Data Head:")
-        print(self.concatenated_df.head())  # Display the first few rows of concatenated_df
+        self.concatenate_dataframes()
 
         # Load the entire dataset, setting the first row as header
         self.gait_data = pd.read_excel(self.file_name, header=0)
-        print("Final Data Head:")
-        print(self.gait_data.head())  # Display the first few rows
+        # print("Final Data Head:")
+        # print(self.gait_data.head())  # Display the first few rows
 
 
     def filter_data(self, time_ranges: list[tuple[float, float]]):
