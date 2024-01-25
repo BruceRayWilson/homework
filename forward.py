@@ -16,6 +16,45 @@ class ExtractData:
         self.concatenated_df = None
         self.filtered_data = None
         self.missing_data_info = None
+        self.time_ranges = None
+
+    def get_time_ranges(self):
+        """
+        Generate time ranges for gait analysis data.
+        """
+
+        # Sort self.concatenated_df by 'Toe-Off'
+        self.concatenated_df.sort_values(by='Toe-Off', inplace=True)
+
+        # Calculate a new column named 'Time' which is 'COM Above Toe' minus 'Toe-Off'
+        self.concatenated_df['Time'] = self.concatenated_df['COM Above Toe'] - self.concatenated_df['Toe-Off']
+
+        # Calculate gap_check equals the max of 'Time' times margin
+        margin = 1.5
+        gap_check = self.concatenated_df['Time'].max() * margin
+
+        # Calculate a new column named 'Next COM Above Toe'
+        self.concatenated_df['Next COM Above Toe'] = self.concatenated_df['COM Above Toe'].shift(-1)
+
+        # Begin generating the time ranges for the gait analysis data
+        # Use 'Next COM Above Toe' and gap_check to find the time ranges of the gait analysis data
+        # Store the time ranges in self.time_ranges: list[tuple[float, float]]
+        self.time_ranges = []
+        start_time = self.concatenated_df.iloc[0]['Toe-Off']
+        for index, row in self.concatenated_df.iterrows():
+            if index < len(self.concatenated_df) - 1:
+                current_time = row['COM Above Toe']
+                next_time = row['Next COM Above Toe']
+                if next_time - current_time > gap_check:
+                    self.time_ranges.append((start_time, current_time))
+                    next_index = index + 1
+                    start_time = self.concatenated_df.iloc[next_index]['Toe-Off']
+            else:
+                self.time_ranges.append((start_time, self.concatenated_df.iloc[-1]['COM Above Toe']))
+        # End generating the time ranges for the gait analysis data
+
+        # Print self.time_ranges
+        print(self.time_ranges)
 
     def concatenate_dataframes(self):
         """
@@ -103,16 +142,13 @@ class ExtractData:
         # print(self.gait_data.head())  # Display the first few rows
 
 
-    def filter_data(self, time_ranges: list[tuple[float, float]]):
+    def filter_data(self):
         """
-        Filter the data based on provided time ranges.
-
-        Args:
-        time_ranges (list of tuples): Each tuple contains the start and end of a time range.
+        Filter the data based on time ranges.
         """
         self.filtered_data = self.gait_data[
-            (self.gait_data['Time (s)'] >= time_ranges[0][0]) & (self.gait_data['Time (s)'] <= time_ranges[0][1]) |
-            (self.gait_data['Time (s)'] >= time_ranges[1][0]) & (self.gait_data['Time (s)'] <= time_ranges[1][1])
+            (self.gait_data['Time (s)'] >= self.time_ranges[0][0]) & (self.gait_data['Time (s)'] <= self.time_ranges[0][1]) |
+            (self.gait_data['Time (s)'] >= self.time_ranges[1][0]) & (self.gait_data['Time (s)'] <= self.time_ranges[1][1])
         ]
 
     def check_missing_data(self):
@@ -145,8 +181,9 @@ class ExtractData:
         tuple: Contains the filtered data as a DataFrame and missing data information as a Series.
         """
         self.load_data()
-        time_ranges = [(16, 19.5), (22.5, 26.5)]
-        self.filter_data(time_ranges)
+        self.time_ranges = [(15, 19), (22, 25), (29, 32), (35, 38)]
+        # self.get_time_ranges()
+        self.filter_data()
         self.check_missing_data()
         self.plot_data()
         return self.filtered_data, self.missing_data_info
