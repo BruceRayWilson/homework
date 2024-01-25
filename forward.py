@@ -1,43 +1,49 @@
 import pandas as pd
-
-# Load the data from the Excel file
-file_path = 'Gait_Analysis_Example.xlsx'
-gait_data = pd.read_excel(file_path)
-
-# Display the first few rows of the dataframe to understand its structure
-gait_data.head()
-
-
-
-# Define the time ranges for analysis
-time_ranges = [(16, 19.5), (22.5, 26.5)]
-
-# Filter the data to include only the specified time ranges
-filtered_data = gait_data[(gait_data['Time (s)'] >= time_ranges[0][0]) & (gait_data['Time (s)'] <= time_ranges[0][1]) |
-                          (gait_data['Time (s)'] >= time_ranges[1][0]) & (gait_data['Time (s)'] <= time_ranges[1][1])]
-
-# Check for any missing data
-missing_data_info = filtered_data.isnull().sum()
-
-filtered_data.head(), missing_data_info
-print(f'filtered_data.head(): {filtered_data.head()}')
-print(f'filtered data has {missing_data_info[0]} missing data points')
-
-
-
-
-
 import matplotlib.pyplot as plt
 
-# Plotting the filtered data
-plt.figure(figsize=(12, 6))
-plt.plot(filtered_data['Time (s)'], filtered_data['Forward Acceleration (cm/s^2)'], label='Forward Acceleration')
-plt.title('Forward Acceleration vs Time')
-plt.xlabel('Time (s)')
-plt.ylabel('Forward Acceleration (cm/s^2)')
-plt.grid(True)
-plt.legend()
-plt.show()
+class ExtractData:
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self.gait_data = None
+        self.filtered_data = None
+        self.missing_data_info = None
+
+    def load_data(self):
+        self.gait_data = pd.read_excel(self.file_name)
+        print(self.gait_data.head())  # Display the first few rows
+
+    def filter_data(self, time_ranges):
+        self.filtered_data = self.gait_data[
+            (self.gait_data['Time (s)'] >= time_ranges[0][0]) & (self.gait_data['Time (s)'] <= time_ranges[0][1]) |
+            (self.gait_data['Time (s)'] >= time_ranges[1][0]) & (self.gait_data['Time (s)'] <= time_ranges[1][1])
+        ]
+
+    def check_missing_data(self):
+        self.missing_data_info = self.filtered_data.isnull().sum()
+        print(self.filtered_data.head())  # Display the first few rows of filtered data
+        print(f'Filtered data has {self.missing_data_info[0]} missing data points')
+
+    def plot_data(self):
+        plt.figure(figsize=(12, 6))
+        plt.plot(self.filtered_data['Time (s)'], self.filtered_data['Forward Acceleration (cm/s^2)'], label='Forward Acceleration')
+        plt.title('Forward Acceleration vs Time')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Forward Acceleration (cm/s^2)')
+        plt.grid(True)
+        plt.legend()
+        plt.show()
+
+    def exec(self):
+        self.load_data()
+        time_ranges = [(16, 19.5), (22.5, 26.5)]
+        self.filter_data(time_ranges)
+        self.check_missing_data()
+        self.plot_data()
+        return self.filtered_data, self.missing_data_info
+
+# Example usage
+extractor = ExtractData('Gait_Analysis_Example.xlsx')
+filtered_data, missing_data_info = extractor.exec()
 
 
 
