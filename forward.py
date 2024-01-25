@@ -139,7 +139,15 @@ class ExtractData:
         plt.ylabel('Forward Acceleration (cm/s^2)')
         plt.grid(True)
         plt.legend()
+
+        # Save the plot as 'filtered.png'
+        plt.savefig('filtered.png')
+
+        # Display the plot
         plt.show()
+
+        # Close the plot
+        plt.close()
 
     def exec(self) -> tuple[pd.DataFrame, pd.Series]:
         """
