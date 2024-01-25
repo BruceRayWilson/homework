@@ -23,8 +23,8 @@ class ExtractData:
         Load data from an Excel file, create different dataframes, and print their contents.
         The column names for the Left and Right sides are assumed to be on the second row.
         """
-        # Load the entire dataset, setting the second row as header
-        self.gait_data = pd.read_excel(self.file_name)
+        # Load the entire dataset, setting the first row as header
+        self.gait_data = pd.read_excel(self.file_name, header=0)
         print("Initial Data Head:")
         print(self.gait_data.head())  # Display the first few rows
 
@@ -33,16 +33,24 @@ class ExtractData:
         print("\nGait Data Head:")
         print(self.gait_data_df.head())  # Display the first few rows of gait_data_df
 
-        # Identifying columns for Left and Right sides
-        left_cols = [col for col in self.gait_data.columns if 'Left' in col]
-        right_cols = [col for col in self.gait_data.columns if 'Right' in col]
+        # Load the entire dataset, setting the second row as header
+        self.gait_data = pd.read_excel(self.file_name, header=1)
+        print("Second Data Head:")
+        print(self.gait_data.head())  # Display the first few rows
 
-        # Creating the dataframes for Left and Right sides
-        self.left_side_df = self.gait_data[left_cols]
+        # Drop the first four columns from the gait_data
+        self.gait_data = self.gait_data.iloc[:, 4:]
+
+        # Collect the first four columns in self.left_side_df
+        self.left_side_df = self.gait_data.iloc[:, :4]
         print("\nLeft Side Data Head:")
         print(self.left_side_df.head())  # Display the first few rows of left_side_df
 
-        self.right_side_df = self.gait_data[right_cols]
+        # Drop the first five columns from the gait_data (total drop is now nine columns)
+        self.gait_data = self.gait_data.iloc[:, 5:]
+
+        # Collect the first four columns in self.right_side_df
+        self.right_side_df = self.gait_data.iloc[:, :4]
         print("\nRight Side Data Head:")
         print(self.right_side_df.head())  # Display the first few rows of right_side_df
 
@@ -50,6 +58,11 @@ class ExtractData:
         self.concatenated_df = pd.concat([self.left_side_df, self.right_side_df], axis=1)
         print("\nConcatenated Data Head:")
         print(self.concatenated_df.head())  # Display the first few rows of concatenated_df
+
+        # Load the entire dataset, setting the first row as header
+        self.gait_data = pd.read_excel(self.file_name, header=0)
+        print("Final Data Head:")
+        print(self.gait_data.head())  # Display the first few rows
 
 
     def filter_data(self, time_ranges: list[tuple[float, float]]):
