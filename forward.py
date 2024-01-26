@@ -185,7 +185,7 @@ class ExtractData:
         tuple: Contains the filtered data as a DataFrame and missing data information as a Series.
         """
         self.load_data()
-        self.time_ranges = [(15, 19), (22, 25), (29, 32), (35, 38)]
+        self.time_ranges = [(15, 19), (22, 26), (29, 32), (35, 38)]
         self.filter_data()
         self.check_missing_data()
         self.plot_data(self.filtered_data, 'filtered.png')

@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
+import numpy as np
 
 class SmoothData:
     def __init__(self, input_file_path: str, output_file_path: str):
@@ -24,6 +25,7 @@ class SmoothData:
         self.filtered_data = pd.read_csv(self.input_file_path)
         print(self.filtered_data.head())
 
+
     def plot_data(self):
         """
         Plot the original and smoothed acceleration data.
@@ -32,6 +34,23 @@ class SmoothData:
         plt.figure(figsize=(12, 6))
         # plt.plot(self.filtered_data['Time (s)'], self.filtered_data['Forward Acceleration (cm/s^2)'], label='Original Acceleration')
         plt.plot(self.filtered_data['Time (s)'], self.filtered_data['Smoothed Acceleration'], label='Smoothed Acceleration', color='red')
+
+        # Determine the range for vertical lines
+        time_min = np.floor(min(self.filtered_data['Time (s)']))
+        time_max = np.ceil(max(self.filtered_data['Time (s)']))
+        
+        # Add vertical lines at every whole number
+        for x in np.arange(time_min, time_max + 1):
+            plt.axvline(x, color='grey', linestyle='--', linewidth=0.5)
+
+        # Determine the range for horizontal lines
+        accel_min = np.floor(min(self.filtered_data['Smoothed Acceleration']) / 20) * 20
+        accel_max = np.ceil(max(self.filtered_data['Smoothed Acceleration']) / 20) * 20
+
+        # Add horizontal lines at every multiple of 20
+        for y in np.arange(accel_min, accel_max + 20, 20):
+            plt.axhline(y, color='grey', linestyle='--', linewidth=0.5)
+
         plt.title('Original vs. Smoothed Acceleration Data')
         plt.xlabel('Time (s)')
         plt.ylabel('Acceleration (cm/s^2)')
@@ -40,6 +59,7 @@ class SmoothData:
         plt.savefig('smoothed_data_plot.png')
         plt.show()
         plt.close()
+
 
     def exec(self):
         """
@@ -71,3 +91,53 @@ input_file_path = 'filtered.csv'
 output_file_path = 'smoothed.csv'
 smooth_data = SmoothData(input_file_path, output_file_path)
 smooth_data.exec()
+
+
+# Read the data
+data = pd.read_csv(output_file_path)
+
+# Initialize the 'Braking' and 'Propulsion' columns with zeros
+data['Braking'] = 0
+data['Propulsion'] = 0
+
+# Loop through the dataset to set values for 'Braking' and 'Propulsion' based on the conditions
+for i in range(1, len(data)):
+    # Braking: transition from above zero to zero or less
+    if data['Smoothed Acceleration'].iloc[i-1] > 0 and data['Smoothed Acceleration'].iloc[i] <= 0:
+        data['Braking'].iloc[i] = 1
+
+    # Propulsion: transition from below zero to zero or more
+    if data['Smoothed Acceleration'].iloc[i-1] < 0 and data['Smoothed Acceleration'].iloc[i] >= 0:
+        data['Propulsion'].iloc[i] = 1
+
+# data.head()
+print('data.head()')
+print(data.head())
+
+
+
+
+
+
+
+import matplotlib.pyplot as plt
+
+# Save the modified data to a new CSV file
+data.to_csv('updated_data.csv', index=False)
+
+# Plotting the data
+# For demonstration, I'll plot 'Braking' and 'Propulsion' columns.
+# You can modify this to plot the columns relevant to your analysis.
+plt.figure(figsize=(10, 6))
+plt.plot(data['Braking'], label='Braking')
+plt.plot(data['Propulsion'], label='Propulsion')
+plt.title('Braking and Propulsion Data')
+plt.xlabel('Index')
+plt.ylabel('Values')
+plt.legend()
+
+# Show the plot
+plt.show()
+
+# Close the plot
+plt.close()
