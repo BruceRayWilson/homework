@@ -114,7 +114,7 @@ class ExtractData:
         # Loop through each time range in self.time_ranges
         for start, end in self.time_ranges:
             # Apply the filter for the current time range
-            current_filtered = self.gait_data[(self.gait_data['Time (s)'] >= start) & (self.gait_data['Time (s)'] <= end)]
+            current_filtered = self.gait_data_df[(self.gait_data_df['Time (s)'] >= start) & (self.gait_data_df['Time (s)'] <= end)]
 
             # Combine the filtered data from the current time range with the previous ones
             self.filtered_data = pd.concat([self.filtered_data, current_filtered])
@@ -128,26 +128,54 @@ class ExtractData:
         print(self.filtered_data.head())  # Display the first few rows of filtered data
         print(f'Filtered data has {self.missing_data_info[0]} missing data points')
 
-    def plot_data(self):
+    def plot_data(self, filtered_data: pd.DataFrame, filename: str):
         """
-        Plot the filtered data.
+        Plot the data and save the plot to a file.
+
+        Args:
+        filtered_data (pd.DataFrame): The DataFrame containing the data to be plotted.
+        filename (str): The name of the file to save the plot, including .png extension.
         """
+        # Create a new figure with specific size
         plt.figure(figsize=(12, 6))
-        plt.plot(self.filtered_data['Time (s)'], self.filtered_data['Forward Acceleration (cm/s^2)'], label='Forward Acceleration')
+
+        # Plotting the 'Forward Acceleration' against 'Time'
+        plt.plot(filtered_data['Time (s)'], filtered_data['Forward Acceleration (cm/s^2)'], label='Forward Acceleration')
+
+        # Setting the title of the plot
         plt.title('Forward Acceleration vs Time')
+
+        # Setting labels for x and y axes
         plt.xlabel('Time (s)')
         plt.ylabel('Forward Acceleration (cm/s^2)')
+
+        # Enabling grid for better readability
         plt.grid(True)
+
+        # Displaying the legend
         plt.legend()
 
-        # Save the plot as 'filtered.png'
-        plt.savefig('filtered.png')
+        # Saving the plot to a file in PNG format
+        plt.savefig(filename)
 
-        # Display the plot
+        # Displaying the plot
         plt.show()
 
-        # Close the plot
+        # Closing the plot to free up memory
         plt.close()
+
+
+    def save_data(self, filtered_data: pd.DataFrame, filename: str):
+        """
+        Save the filtered data to a file.
+
+        Args:
+        filtered_data (pd.DataFrame): The DataFrame containing the data to be saved.
+        filename (str): The name of the file to save the data, including file extension.
+        """
+        # Saving the DataFrame to a file
+        filtered_data.to_csv(filename, index=False)
+
 
     def exec(self) -> tuple[pd.DataFrame, pd.Series]:
         """
@@ -160,7 +188,8 @@ class ExtractData:
         self.time_ranges = [(15, 19), (22, 25), (29, 32), (35, 38)]
         self.filter_data()
         self.check_missing_data()
-        self.plot_data()
+        self.plot_data(self.filtered_data, 'filtered.png')
+        self.save_data(self.filtered_data, 'filtered.csv')
         return self.filtered_data, self.missing_data_info
 
 # Example usage
