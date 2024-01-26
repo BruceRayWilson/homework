@@ -37,7 +37,7 @@ class ExtractData:
 
         # Extract columns for left and right sides
         left_side_cols = gait_data.columns[4:8]
-        right_side_cols = gait_data.columns[8:]
+        right_side_cols = gait_data.columns[9:]
 
         # Create a dictionary to map the closest times to their labels
         label_dict = {}
@@ -45,7 +45,7 @@ class ExtractData:
         # Process left side
         for col in left_side_cols:
             event_name = gait_data[col][0]  # Get the event name from the first row
-            event_times = gait_data[col][1:]  # Get the event times
+            event_times = gait_data[col][1:].dropna()  # Get the event times
             closest_times = find_closest_time(gait_data['Time (s)'], event_times)
             for closest_time in closest_times:
                 label_dict[closest_time] = label_dict.get(closest_time, '') + event_name + ', '
@@ -53,7 +53,7 @@ class ExtractData:
         # Process right side
         for col in right_side_cols:
             event_name = gait_data[col][0]  # Get the event name from the first row
-            event_times = gait_data[col][1:]  # Get the event times
+            event_times = gait_data[col][1:].dropna()  # Get the event times
             closest_times = find_closest_time(gait_data['Time (s)'], event_times)
             for closest_time in closest_times:
                 label_dict[closest_time] = label_dict.get(closest_time, '') + event_name + ', '
