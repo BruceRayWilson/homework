@@ -126,14 +126,19 @@ import matplotlib.pyplot as plt
 data.to_csv('updated_data.csv', index=False)
 
 # Plotting the data
-# For demonstration, I'll plot 'Braking' and 'Propulsion' columns.
-# You can modify this to plot the columns relevant to your analysis.
 plt.figure(figsize=(10, 6))
-plt.plot(data['Braking'], label='Braking')
-plt.plot(data['Propulsion'], label='Propulsion')
-plt.title('Braking and Propulsion Data')
-plt.xlabel('Index')
-plt.ylabel('Values')
+
+# Plot '|' for Braking equal to 1 using 'Time (s)' column
+braking_times = data['Time (s)'][data['Braking'] == 1]
+plt.scatter(braking_times, [1] * len(braking_times), marker='|', color='r', label='Braking', s=100)  # s is the size of the marker
+
+# Plot '+' for Propulsion equal to 1 using 'Time (s)' column
+propulsion_times = data['Time (s)'][data['Propulsion'] == 1]
+plt.scatter(propulsion_times, [1] * len(propulsion_times), marker='+', color='b', label='Propulsion', s=100)  # s is the size of the marker
+
+plt.title('Braking and Propulsion Over Time (s)')
+plt.xlabel('Time (s)')
+plt.ylabel('Indicator')
 plt.legend()
 
 # Show the plot
