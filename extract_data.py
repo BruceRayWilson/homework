@@ -63,10 +63,14 @@ class ExtractData:
             gait_data.loc[gait_data['Time (s)'] == time, 'Label'] = label.rstrip(', ')
 
         self.gait_data = gait_data.copy()
-        
+
+        # Set any NaN label to 'Other'
+        gait_data['Label'] = gait_data['Label'].fillna('Other')
+
+        self.gait_data = gait_data.copy()
+
         print("Initial Data Head:")
         print(self.gait_data.head())  # Display the first few rows
-
 
     def load_data(self):
         """
@@ -220,6 +224,7 @@ class ExtractData:
         self.plot_acceleration(self.filtered_data, 'filtered_acceleration.png')
         self.save_data(self.filtered_data, 'filtered_acceleration.csv')
 
+        self.add_labels()
         self.load_data()
         self.time_ranges = [(15, 19.5), (22.5, 26.5), (29, 33), (35, 39)]
         self.filter_data()
