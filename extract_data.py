@@ -15,7 +15,6 @@ class ExtractData:
         self.right_side_df = None
         self.concatenated_df = None
         self.filtered_data = None
-        self.missing_data_info = None
         self.time_ranges = None
 
     def concatenate_dataframes(self):
@@ -119,16 +118,43 @@ class ExtractData:
             # Combine the filtered data from the current time range with the previous ones
             self.filtered_data = pd.concat([self.filtered_data, current_filtered])
 
-    def check_missing_data(self):
+    def plot_roll(self, filtered_data: pd.DataFrame, filename: str):
         """
-        Check for any missing data in the filtered dataset.
-        """
-        self.missing_data_info = self.filtered_data.isnull().sum()
-        print('\nself.filtered_data:')
-        print(self.filtered_data.head())  # Display the first few rows of filtered data
-        print(f'Filtered data has {self.missing_data_info[0]} missing data points')
+        Plot the data and save the plot to a file.
 
-    def plot_data(self, filtered_data: pd.DataFrame, filename: str):
+        Args:
+        filtered_data (pd.DataFrame): The DataFrame containing the data to be plotted.
+        filename (str): The name of the file to save the plot, including .png extension.
+        """
+        # Create a new figure with specific size
+        plt.figure(figsize=(12, 6))
+
+        # Plotting the 'Roll' against 'Time'
+        plt.plot(filtered_data['Time (s)'], filtered_data['Roll (deg)'], label='Roll')
+
+        # Setting the title of the plot
+        plt.title('Roll vs Time')
+
+        # Setting labels for x and y axes
+        plt.xlabel('Time (s)')
+        plt.ylabel('Roll (degrees)')
+
+        # Enabling grid for better readability
+        plt.grid(True)
+
+        # Displaying the legend
+        plt.legend()
+
+        # Saving the plot to a file in PNG format
+        plt.savefig(filename)
+
+        # Displaying the plot
+        plt.show()
+
+        # Closing the plot to free up memory
+        plt.close()
+
+    def plot_acceleration(self, filtered_data: pd.DataFrame, filename: str):
         """
         Plot the data and save the plot to a file.
 
@@ -187,22 +213,15 @@ class ExtractData:
         self.load_data()
         self.time_ranges = [(15, 19), (22, 26), (29, 32), (35, 38)]
         self.filter_data()
-        self.check_missing_data()
-        self.plot_data(self.filtered_data, 'filtered.png')
-        self.save_data(self.filtered_data, 'filtered.csv')
-        return self.filtered_data, self.missing_data_info
+        self.plot_acceleration(self.filtered_data, 'filtered_acceleration.png')
+        self.save_data(self.filtered_data, 'filtered_acceleration.csv')
+
+        self.load_data()
+        self.time_ranges = [(15, 19.5), (22.5, 26.5), (29, 33), (35, 39)]
+        self.filter_data()
+        self.plot_roll(self.filtered_data, 'filtered_roll.png')
+        self.save_data(self.filtered_data, 'filtered_roll.csv')
 
 # Example usage
 extractor = ExtractData('Gait_Analysis_Example.xlsx')
-filtered_data_out, missing_data_info_out = extractor.exec()
-
-
-# First, let's load the data from the provided file to understand its structure and contents.
-import pandas as pd
-
-# Load the data from the file
-file_path = 'filtered.csv'
-filtered_data = pd.read_csv(file_path)
-
-# Display the first few rows of the dataframe to understand its structure
-filtered_data.head()
+extractor.exec()
