@@ -194,4 +194,15 @@ class ExtractData:
 
 # Example usage
 extractor = ExtractData('Gait_Analysis_Example.xlsx')
-filtered_data, missing_data_info = extractor.exec()
+filtered_data_out, missing_data_info_out = extractor.exec()
+
+
+# First, let's load the data from the provided file to understand its structure and contents.
+import pandas as pd
+
+# Load the data from the file
+file_path = 'filtered.csv'
+filtered_data = pd.read_csv(file_path)
+
+# Display the first few rows of the dataframe to understand its structure
+filtered_data.head()
