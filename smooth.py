@@ -93,56 +93,74 @@ smooth_data = SmoothData(input_file_path, output_file_path)
 smooth_data.exec()
 
 
-# Read the data
-data = pd.read_csv(output_file_path)
-
-# Initialize the 'Braking' and 'Propulsion' columns with zeros
-data['Braking'] = 0
-data['Propulsion'] = 0
-
-# Loop through the dataset to set values for 'Braking' and 'Propulsion' based on the conditions
-for i in range(1, len(data)):
-    # Braking: transition from above zero to zero or less
-    if data['Smoothed Acceleration'].iloc[i-1] > 0 and data['Smoothed Acceleration'].iloc[i] <= 0:
-        data['Braking'].iloc[i] = 1
-
-    # Propulsion: transition from below zero to zero or more
-    if data['Smoothed Acceleration'].iloc[i-1] < 0 and data['Smoothed Acceleration'].iloc[i] >= 0:
-        data['Propulsion'].iloc[i] = 1
-
-# data.head()
-print('data.head()')
-print(data.head())
 
 
 
 
 
-
-
+import pandas as pd
 import matplotlib.pyplot as plt
 
-# Save the modified data to a new CSV file
-data.to_csv('updated_data.csv', index=False)
+class DetectEntries:
+    def __init__(self, file_path: str):
+        """
+        Initialize the DetectEntries object by reading data from the given CSV file.
+        
+        Args:
+        file_path (str): Path to the CSV file.
+        """
+        self.data = pd.read_csv(file_path)
+        self.initialize_columns()
 
-# Plotting the data
-plt.figure(figsize=(10, 6))
+    def initialize_columns(self):
+        """Initialize 'Braking' and 'Propulsion' columns with zeros."""
+        self.data['Braking'] = 0
+        self.data['Propulsion'] = 0
 
-# Plot '|' for Braking equal to 1 using 'Time (s)' column
-braking_times = data['Time (s)'][data['Braking'] == 1]
-plt.scatter(braking_times, [1] * len(braking_times), marker='|', color='r', label='Braking', s=100)  # s is the size of the marker
+    def detect_entries(self):
+        """
+        Detect entries for 'Braking' and 'Propulsion' in the dataset.
+        'Braking' is set when transitioning from above zero to zero or less.
+        'Propulsion' is set when transitioning from below zero to zero or more.
+        """
+        for i in range(1, len(self.data)):
+            if self.data['Smoothed Acceleration'].iloc[i-1] > 0 and self.data['Smoothed Acceleration'].iloc[i] <= 0:
+                self.data.at[i, 'Braking'] = 1  # Using .at[] for label-based indexing
+            if self.data['Smoothed Acceleration'].iloc[i-1] < 0 and self.data['Smoothed Acceleration'].iloc[i] >= 0:
+                self.data.at[i, 'Propulsion'] = 1  # Using .at[] for label-based indexing
 
-# Plot '+' for Propulsion equal to 1 using 'Time (s)' column
-propulsion_times = data['Time (s)'][data['Propulsion'] == 1]
-plt.scatter(propulsion_times, [1] * len(propulsion_times), marker='+', color='b', label='Propulsion', s=100)  # s is the size of the marker
+    def plot_data(self):
+        """Plot the 'Braking' and 'Propulsion' data over time."""
+        plt.figure(figsize=(10, 6))
+        braking_times = self.data['Time (s)'][self.data['Braking'] == 1]
+        plt.scatter(braking_times, [1] * len(braking_times), marker='|', color='r', label='Braking', s=100)
+        propulsion_times = self.data['Time (s)'][self.data['Propulsion'] == 1]
+        plt.scatter(propulsion_times, [1] * len(propulsion_times), marker='+', color='b', label='Propulsion', s=100)
+        plt.title('Braking and Propulsion Over Time (s)')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Indicator')
+        plt.legend()
+        plt.show()
+        plt.close()
 
-plt.title('Braking and Propulsion Over Time (s)')
-plt.xlabel('Time (s)')
-plt.ylabel('Indicator')
-plt.legend()
+    def save_data(self, file_path: str):
+        """
+        Save the modified data to a new CSV file.
+        
+        Args:
+        file_path (str): Path to the CSV file where the data will be saved.
+        """
+        self.data.to_csv(file_path, index=False)
 
-# Show the plot
-plt.show()
+    def exec(self):
+        """
+        Execute the methods to detect entries, plot data, and save the data.
+        """
+        self.detect_entries()
+        self.plot_data()
+        self.save_data('entry_data.csv')
 
-# Close the plot
-plt.close()
+# Example of how to use the class
+output_file_path = 'smoothed.csv'
+detect_entries = DetectEntries(output_file_path)
+detect_entries.exec()
