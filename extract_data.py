@@ -10,60 +10,72 @@ class ExtractData:
         file_name (str): The name of the file containing the gait analysis data.
         """
         self.file_name = file_name
+        self.gait_data = None
         self.gait_data_df = None
         self.left_side_df = None
         self.right_side_df = None
-        self.concatenated_df = None
         self.filtered_data = None
         self.time_ranges = None
 
-    def concatenate_dataframes(self):
-        """
-        Concatenate two dataframes vertically after verifying the column names match.
-        Initially, remove the postfix '.1' from each of the column names in self.right_side_df.
-        """
-        # print(f'self.left_side_df columns: {self.left_side_df.columns}')
 
-        # Removing the postfix '.1' from each column name in self.right_side_df
-        self.right_side_df.columns = [col.replace('.1', '') for col in self.right_side_df.columns]
-        # print(f'self.right_side_df columns: {self.right_side_df.columns}')
+    def add_labels(self):
 
-        # Check if the columns in both dataframes match
-        if list(self.left_side_df.columns) == list(self.right_side_df.columns):
-            # Columns match, proceed with concatenation
-            self.concatenated_df = pd.concat([self.left_side_df, self.right_side_df], axis=0)
+        def find_closest_time(time_col, event_times):
+            """
+            For each event time, find the closest time in the main time column.
+            Returns a dictionary mapping the closest times to their corresponding events.
+            """
+            closest_times = {}
+            for event_time in event_times:
+                if pd.notna(event_time) and event_time not in closest_times:
+                    closest_time = time_col.iloc[(time_col - event_time).abs().argmin()]
+                    closest_times[closest_time] = event_time
+            return closest_times
 
-            # Drop rows with NaN values
-            self.concatenated_df.dropna(inplace=True)
-        else:
-            # Handle the case where columns do not match
-            print("Column names do not match. Cannot concatenate dataframes.")
-            print(f'Left side dataframe columns: {self.left_side_df.columns}')
-            print(f'Right side dataframe columns: {self.right_side_df.columns}')
-            # Optionally, you can implement logic here to reconcile the column names
-            # For example, you might rename columns or drop non-matching ones
-            # Then, perform the concatenation after handling the mismatch
-            # self.concatenated_df = pd.concat([adjusted_left_side_df, adjusted_right_side_df], axis=0)
+        # Load the Excel file
+        gait_data = pd.read_excel(self.file_name)
 
-        print("\nConcatenated Data Head:")
-        if hasattr(self, 'concatenated_df'):
-            # print(self.concatenated_df.head())  # Display the first few rows of concatenated_df
-            print(self.concatenated_df)
-        else:
-            print("Concatenated dataframe not created due to column mismatch.")
+        # Extract columns for left and right sides
+        left_side_cols = gait_data.columns[4:8]
+        right_side_cols = gait_data.columns[8:]
 
-    def load_data(self):
-        """
-        Load data from an Excel file, create different dataframes, and print their contents.
-        The column names for the Left and Right sides are assumed to be on the second row.
-        """
-        # Load the entire dataset, setting the first row as header
-        self.gait_data = pd.read_excel(self.file_name, header=0)
+        # Create a dictionary to map the closest times to their labels
+        label_dict = {}
+
+        # Process left side
+        for col in left_side_cols:
+            event_name = gait_data[col][0]  # Get the event name from the first row
+            event_times = gait_data[col][1:]  # Get the event times
+            closest_times = find_closest_time(gait_data['Time (s)'], event_times)
+            for closest_time in closest_times:
+                label_dict[closest_time] = label_dict.get(closest_time, '') + event_name + ', '
+
+        # Process right side
+        for col in right_side_cols:
+            event_name = gait_data[col][0]  # Get the event name from the first row
+            event_times = gait_data[col][1:]  # Get the event times
+            closest_times = find_closest_time(gait_data['Time (s)'], event_times)
+            for closest_time in closest_times:
+                label_dict[closest_time] = label_dict.get(closest_time, '') + event_name + ', '
+
+        # Remove trailing commas and assign labels to the original dataframe
+        for time, label in label_dict.items():
+            gait_data.loc[gait_data['Time (s)'] == time, 'Label'] = label.rstrip(', ')
+
+        self.gait_data = gait_data.copy()
+        
         print("Initial Data Head:")
         print(self.gait_data.head())  # Display the first few rows
 
-        # Creating the dataframe with the first three columns
-        self.gait_data_df = self.gait_data.iloc[:, :3]
+
+    def load_data(self):
+        """
+        Use self.gait_data to create different dataframes, and print their contents.
+        The column names for the Left and Right sides are assumed to be on the second row.
+        """
+
+        # Creating the dataframe with the first four columns
+        self.gait_data_df = self.gait_data.iloc[:, :4]
         print("\nGait Data Head:")
         print(self.gait_data_df.head())  # Display the first few rows of gait_data_df
 
@@ -76,7 +88,7 @@ class ExtractData:
         self.gait_data = self.gait_data.iloc[:, 4:]
 
         # Collect the first four columns in self.left_side_df
-        self.left_side_df = self.gait_data.iloc[:, :4]
+        self.left_side_df = self.gait_data.iloc[:, :4].copy()
 
         # Drop rows with NaN values
         self.left_side_df.dropna(inplace=True)
@@ -87,15 +99,12 @@ class ExtractData:
         self.gait_data = self.gait_data.iloc[:, 5:]
 
         # Collect the first four columns in self.right_side_df
-        self.right_side_df = self.gait_data.iloc[:, :4]
+        self.right_side_df = self.gait_data.iloc[:, :4].copy()
 
         # Drop rows with NaN values
         self.right_side_df.dropna(inplace=True)
         print("\n\nRight Side Data Head:")
         print(self.right_side_df.head())  # Display the first few rows of right_side_df
-
-        # Creating the concatenated dataframe
-        self.concatenate_dataframes()
 
         # Load the entire dataset, setting the first row as header
         self.gait_data = pd.read_excel(self.file_name, header=0)
@@ -148,9 +157,6 @@ class ExtractData:
         # Saving the plot to a file in PNG format
         plt.savefig(filename)
 
-        # Displaying the plot
-        plt.show()
-
         # Closing the plot to free up memory
         plt.close()
 
@@ -184,9 +190,6 @@ class ExtractData:
         # Saving the plot to a file in PNG format
         plt.savefig(filename)
 
-        # Displaying the plot
-        plt.show()
-
         # Closing the plot to free up memory
         plt.close()
 
@@ -210,6 +213,7 @@ class ExtractData:
         Returns:
         tuple: Contains the filtered data as a DataFrame and missing data information as a Series.
         """
+        self.add_labels()
         self.load_data()
         self.time_ranges = [(15, 19), (22, 26), (29, 32), (35, 38)]
         self.filter_data()
