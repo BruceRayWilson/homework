@@ -18,68 +18,17 @@ class ExtractData:
         self.time_ranges = None
 
 
-    def add_labels(self):
-
-        def find_closest_time(time_col, event_times):
-            """
-            For each event time, find the closest time in the main time column.
-            Returns a dictionary mapping the closest times to their corresponding events.
-            """
-            closest_times = {}
-            for event_time in event_times:
-                if pd.notna(event_time) and event_time not in closest_times:
-                    closest_time = time_col.iloc[(time_col - event_time).abs().argmin()]
-                    closest_times[closest_time] = event_time
-            return closest_times
-
-        # Load the Excel file
-        gait_data = pd.read_excel(self.file_name)
-
-        # Extract columns for left and right sides
-        left_side_cols = gait_data.columns[4:8]
-        right_side_cols = gait_data.columns[9:]
-
-        # Create a dictionary to map the closest times to their labels
-        label_dict = {}
-
-        # Process left side
-        for col in left_side_cols:
-            event_name = gait_data[col][0]  # Get the event name from the first row
-            event_times = gait_data[col][1:].dropna()  # Get the event times
-            closest_times = find_closest_time(gait_data['Time (s)'], event_times)
-            for closest_time in closest_times:
-                label_dict[closest_time] = label_dict.get(closest_time, '') + event_name + ', '
-
-        # Process right side
-        for col in right_side_cols:
-            event_name = gait_data[col][0]  # Get the event name from the first row
-            event_times = gait_data[col][1:].dropna()  # Get the event times
-            closest_times = find_closest_time(gait_data['Time (s)'], event_times)
-            for closest_time in closest_times:
-                label_dict[closest_time] = label_dict.get(closest_time, '') + event_name + ', '
-
-        # Remove trailing commas and assign labels to the original dataframe
-        for time, label in label_dict.items():
-            gait_data.loc[gait_data['Time (s)'] == time, 'Label'] = label.rstrip(', ')
-
-        self.gait_data = gait_data.copy()
-
-        # Set any NaN label to 'Other'
-        gait_data['Label'] = gait_data['Label'].fillna('Other')
-
-        self.gait_data = gait_data.copy()
-
-        print("Initial Data Head:")
-        print(self.gait_data.head())  # Display the first few rows
-
     def load_data(self):
         """
-        Use self.gait_data to create different dataframes, and print their contents.
+        Use CSV file to create different dataframes, and print their contents.
         The column names for the Left and Right sides are assumed to be on the second row.
         """
 
-        # Creating the dataframe with the first four columns
-        self.gait_data_df = self.gait_data.iloc[:, :4]
+        # Load the Excel file
+        self.gait_data = pd.read_excel(self.file_name)
+
+        # Creating the dataframe with the first three columns
+        self.gait_data_df = self.gait_data.iloc[:, :3]
         print("\nGait Data Head:")
         print(self.gait_data_df.head())  # Display the first few rows of gait_data_df
 
@@ -217,16 +166,16 @@ class ExtractData:
         Returns:
         tuple: Contains the filtered data as a DataFrame and missing data information as a Series.
         """
-        self.add_labels()
+        # self.add_labels()
         self.load_data()
         self.time_ranges = [(15, 19), (22, 26), (29, 32), (35, 38)]
         self.filter_data()
         self.plot_acceleration(self.filtered_data, 'filtered_acceleration.png')
         self.save_data(self.filtered_data, 'filtered_acceleration.csv')
 
-        self.add_labels()
+        # self.add_labels()
         self.load_data()
-        self.time_ranges = [(15, 19.5), (22.5, 26.5), (29, 33), (35, 39)]
+        self.time_ranges = [(15.5, 19), (22.5, 26.5), (29, 33), (35, 39)]
         self.filter_data()
         self.plot_roll(self.filtered_data, 'filtered_roll.png')
         self.save_data(self.filtered_data, 'filtered_roll.csv')
