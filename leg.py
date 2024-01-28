@@ -59,6 +59,8 @@ class Leg:
         # Saving the plot to a file in PNG format
         plt.savefig('leg.png')
 
+        plt.show()
+
         # Closing the plot to free up memory
         plt.close()
 
