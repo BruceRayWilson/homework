@@ -27,7 +27,7 @@ class Leg:
             right_start_indices = batch_data[(batch_data['Roll_diff'].shift(-1) > 0) & (batch_data['Roll_diff'] <= 0) & (batch_data[roll_column] < -1.5)].index
             for start_idx in right_start_indices:
                 end_idx = batch_data.loc[start_idx:][batch_data['Roll (deg)'] >= 0].first_valid_index()
-                if end_idx is not None and batch_data.loc[end_idx] :
+                if end_idx is not None:
                     self.data.loc[start_idx:end_idx, 'Leg'] = 'Right'
 
             # Left Foot Down Segments
