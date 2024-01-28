@@ -33,7 +33,6 @@ class Leg:
             # Left Foot Down Segments
             left_start_indices = batch_data[(batch_data['Roll_diff'].shift(-1) <= 0) & (batch_data['Roll_diff'] > 0) & (batch_data[roll_column] > 2.5)].index
             for start_idx in left_start_indices:
-                # end_idx = batch_data.loc[start_idx:][batch_data['Roll (deg)'] >= 0].first_valid_index()
                 end_idx = batch_data.loc[start_idx:][batch_data['Roll (deg)'] <= 0].first_valid_index()
                 if end_idx is not None:
                     self.data.loc[start_idx:end_idx, 'Leg'] = 'Left'
@@ -50,12 +49,12 @@ class Leg:
             else:
                 color = 'yellow'
             
-            plt.scatter(row['Time (s)'], row['Roll (deg)'], color=color, s=5)  # s=5 for small circles
+            plt.scatter(row['Time (s)'], row['Roll (deg)'], color=color, s=5)
 
         # Setting plot labels and title
         plt.xlabel('Time (s)')
         plt.ylabel('Roll (deg)')
-        plt.title('Roll Angle Over Time with Updated Right and Left Foot Down Segments (Small Circles)')
+        plt.title('Roll Angle Over Time with Updated Right and Left Foot Down Segments')
 
         # Saving the plot to a file in PNG format
         plt.savefig('leg.png')
