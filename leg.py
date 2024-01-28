@@ -41,7 +41,7 @@ class Leg:
     def plot_data(self):
         plt.figure(figsize=(12, 6))
 
-        # Plotting each point with the specified color
+        # Plotting each point with small circles
         for index, row in self.data.iterrows():
             if row['Leg'] == 'Right':
                 color = 'red'
@@ -50,18 +50,19 @@ class Leg:
             else:
                 color = 'yellow'
             
-            plt.scatter(row['Time (s)'], row['Roll (deg)'], color=color)
+            plt.scatter(row['Time (s)'], row['Roll (deg)'], color=color, s=5)  # s=5 for small circles
 
         # Setting plot labels and title
         plt.xlabel('Time (s)')
         plt.ylabel('Roll (deg)')
-        plt.title('Roll Angle Over Time with Updated Right and Left Foot Down Segments')
+        plt.title('Roll Angle Over Time with Updated Right and Left Foot Down Segments (Small Circles)')
 
         # Saving the plot to a file in PNG format
         plt.savefig('leg.png')
 
         # Closing the plot to free up memory
         plt.close()
+
 
     def exec(self):
         self.load_data()
